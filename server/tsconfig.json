@@ -1,13 +1,12 @@
+
+
 {
-  "extends": "../tsconfig.base.json",
   "compilerOptions": {
+    "noImplicitAny": false,
+    "strict": false,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
     "outDir": "./dist",
-    "rootDir": "./src",
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["src/*"]
-    }
-  },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "prisma"]
+    "rootDir": "./src"
+  }
 }

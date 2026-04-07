@@ -1,12 +1,15 @@
-
-
 {
   "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist",
     "noImplicitAny": false,
     "strict": false,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "outDir": "./dist",
-    "rootDir": "./src"
-  }
+    "moduleResolution": "node",
+    "target": "ES2020",
+    "module": "CommonJS"
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "prisma.config.ts", "prisma/seed.ts"]
 }

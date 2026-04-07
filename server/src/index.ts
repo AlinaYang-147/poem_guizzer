@@ -7,7 +7,6 @@ import { PrismaNeon } from '@prisma/adapter-neon'; // Re-enable this!
 import { Pool, neonConfig } from '@neondatabase/serverless';
 import ws from 'ws';
 import rateLimit from 'express-rate-limit';
-
 // Route imports (Move these to the top for cleaner logic)
 import authRoutes from './routes/auth';
 import quizRoutes from './routes/quiz';
@@ -26,7 +25,7 @@ const PORT = process.env.PORT || 5000;
  */
 const connectionString = process.env.DATABASE_URL || '';
 const pool = new Pool({ connectionString });
-const adapter = new PrismaNeon(pool); // Prisma 7 uses the pool object here
+const adapter = new PrismaNeon(pool as any); // Prisma 7 uses the pool object here
 export const prisma = new PrismaClient({ adapter });
 
 // Security & Middleware

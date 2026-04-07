@@ -13,7 +13,8 @@
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
     "build:client": "npm --workspace client run build",
     "build:server": "npm --workspace server run build",
-    "build": "npm run build:server && npm run build:client",
+    "build": "npm --workspace client run build",
+    
     "db:migrate": "npm --workspace server run db:migrate",
     "db:seed": "npm --workspace server run db:seed",
     "docker:up": "docker compose -f docker/docker-compose.yml up -d",

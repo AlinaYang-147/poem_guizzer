@@ -5,8 +5,8 @@
   "description": "Online Quiz Competition Web App for University Event",
   "workspaces": {
     "packages": ["client", "server"],
-    "nohoist": ["**/vite", "**/vite/**"]
-  }
+    "nohoist": ["**/vite", "**/vite/**", "**/@vitejs", "**/@vitejs/**"]
+  },
   "scripts": {
     "dev:client": "npm --workspace client run dev",
     "dev:server": "npm --workspace server run dev",
@@ -14,7 +14,6 @@
     "build:client": "npm --workspace client run build",
     "build:server": "npm --workspace server run build",
     "build": "npm --workspace client run build",
-    
     "db:migrate": "npm --workspace server run db:migrate",
     "db:seed": "npm --workspace server run db:seed",
     "docker:up": "docker compose -f docker/docker-compose.yml up -d",

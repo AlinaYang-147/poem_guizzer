@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "description": "Online Quiz Competition Web App for University Event",
-  "workspaces": [
-    "client",
-    "server"
-  ],
+  "workspaces": {
+    "packages": ["client", "server"],
+    "nohoist": ["**/vite", "**/vite/**"]
+  }
   "scripts": {
     "dev:client": "npm --workspace client run dev",
     "dev:server": "npm --workspace server run dev",

@@ -4,7 +4,7 @@ import helmet from 'helmet';
 import dotenv from 'dotenv';
 import { PrismaClient } from '@prisma/client';
 import { PrismaNeon } from '@prisma/adapter-neon';
-import { Pool, neonConfig } from '@neondatabase/serverless';
+import { neonConfig } from '@neondatabase/serverless';
 import ws from 'ws';
 import rateLimit from 'express-rate-limit';
 
@@ -30,11 +30,7 @@ const PORT = process.env.PORT || 5000;
 
 // Replace your current initialization with this:
 const connectionString = process.env.DATABASE_URL || '';
-const pool = new Pool({ connectionString });
-
-// Use 'as any' specifically here to bypass the strict type mismatch 
-// between the Neon Pool and the PrismaNeon expected input.
-const adapter = new PrismaNeon(pool as any); 
+const adapter = new PrismaNeon({ connectionString });
 export const prisma = new PrismaClient({ adapter });
 
 // Security & Middleware

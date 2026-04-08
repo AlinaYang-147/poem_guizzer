@@ -3,18 +3,19 @@ import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import { PrismaClient } from '@prisma/client';
-import { PrismaNeon } from '@prisma/adapter-neon'; // Re-enable this!
+import { PrismaNeon } from '@prisma/adapter-neon';
 import { Pool, neonConfig } from '@neondatabase/serverless';
 import ws from 'ws';
 import rateLimit from 'express-rate-limit';
-// Route imports (Move these to the top for cleaner logic)
+
+// Route imports
 import authRoutes from './routes/auth';
 import quizRoutes from './routes/quiz';
 import adminRoutes from './routes/admin';
 
 dotenv.config();
 
-// Important for Neon Serverless
+// Required for Neon Serverless WebSockets
 neonConfig.webSocketConstructor = ws;
 
 const app = express();
@@ -25,7 +26,7 @@ const PORT = process.env.PORT || 5000;
  */
 const connectionString = process.env.DATABASE_URL || '';
 const pool = new Pool({ connectionString });
-const adapter = new PrismaNeon(pool as any); // Prisma 7 uses the pool object here
+const adapter = new PrismaNeon(pool); 
 export const prisma = new PrismaClient({ adapter });
 
 // Security & Middleware
@@ -61,10 +62,14 @@ app.use((_req: Request, res: Response) => {
   res.status(404).json({ error: 'Route not found' });
 });
 
-// Error handler (Fixed types for TS)
-app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+/**
+ * Error handler
+ * Explicitly typed to satisfy TS7006 and TS18046
+ */
+app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
   console.error('Error:', err);
-  res.status(500).json({ error: 'Internal server error' });
+  const message = err instanceof Error ? err.message : 'Internal server error';
+  res.status(500).json({ error: message });
 });
 
 app.listen(PORT, async () => {

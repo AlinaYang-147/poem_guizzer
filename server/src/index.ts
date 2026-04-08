@@ -19,46 +19,43 @@ dotenv.config();
 // Required for Neon Serverless WebSockets
 neonConfig.webSocketConstructor = ws;
 
-const app = express();
-const PORT = process.env.PORT || 5000;
-
-/**
- * Initialize Prisma 7 with Neon Adapter
- */
-
-
-
-// Replace your current initialization with this:
+// Initialize Prisma with Neon Serverless Adapter
 const connectionString = process.env.DATABASE_URL || '';
 const adapter = new PrismaNeon({ connectionString });
 export const prisma = new PrismaClient({ adapter });
 
-// Security & Middleware
-app.use(helmet());
+const app = express();
+const PORT = process.env.PORT || 5000;
 
-// Improved CORS configuration
-const allowedOrigins = [
-  'http://localhost:5173',
-  'https://poemguizzer.vercel.app',
-  'https://poemquizzer.vercel.app',
-];
-
+// 1. ABSOLUTE TOP: CORS & PREFLIGHT
+// This must come before helmet, rateLimit, and everything else.
 app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) !== -1 || process.env.CLIENT_URL === origin) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: [
+    'https://poemguizzer.vercel.app',
+    'http://localhost:5173'
+  ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
 }));
 
-// Handle Preflight (OPTIONS) requests explicitly
-app.options('*', cors() as any);
+// Manual fallback for OPTIONS requests to ensure they NEVER 404 or fail CORS
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', 'https://poemguizzer.vercel.app');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
+// 2. Security & Middleware
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
 
 const limiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000'),

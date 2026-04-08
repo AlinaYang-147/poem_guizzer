@@ -35,13 +35,30 @@ export const prisma = new PrismaClient({ adapter });
 
 // Security & Middleware
 app.use(helmet());
+
+// Improved CORS configuration
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://poemguizzer.vercel.app',
+  'https://poemquizzer.vercel.app',
+];
+
 app.use(cors({
-  origin: [
-    process.env.CLIENT_URL || 'http://localhost:5173',
-    'https://poemguizzer.vercel.app' // Directly allow your Vercel URL
-  ],
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1 || process.env.CLIENT_URL === origin) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
+
+// Handle Preflight (OPTIONS) requests explicitly
+app.options('*', cors() as any);
 
 const limiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000'),

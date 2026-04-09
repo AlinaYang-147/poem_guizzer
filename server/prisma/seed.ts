@@ -5,9 +5,15 @@
  */
 
 import { PrismaClient, Prisma, QuestionType, EventPhase, Role } from '@prisma/client';
+import { PrismaNeon } from '@prisma/adapter-neon';
+import { Pool, neonConfig } from '@neondatabase/serverless';
+import ws from 'ws';
+import 'dotenv/config';
 import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
+
+neonConfig.webSocketConstructor = ws;
 
 async function main() {
   console.log('🌱 Seeding database with Chinese poem questions...');

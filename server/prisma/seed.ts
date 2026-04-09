@@ -3,17 +3,25 @@
  * "腹有诗书气自华" 诗词大会预选赛题目
  * Run with: npm run db:seed
  */
-
 import { PrismaClient, Prisma, QuestionType, EventPhase, Role } from '@prisma/client';
 import { PrismaNeon } from '@prisma/adapter-neon';
 import { Pool, neonConfig } from '@neondatabase/serverless';
 import ws from 'ws';
-import 'dotenv/config';
 import bcrypt from 'bcryptjs';
+import 'dotenv/config'; // Load DATABASE_URL from .env
 
-const prisma = new PrismaClient();
-
+// 1. Mandatory for Neon Serverless in Node environments
 neonConfig.webSocketConstructor = ws;
+
+const connectionString = process.env.DATABASE_URL;
+if (!connectionString) {
+  throw new Error('DATABASE_URL is not defined in your environment variables');
+}
+
+// 2. Initialize the adapter
+const pool = new Pool({ connectionString });
+const adapter = new PrismaNeon(pool);
+const prisma = new PrismaClient({ adapter });
 
 async function main() {
   console.log('🌱 Seeding database with Chinese poem questions...');

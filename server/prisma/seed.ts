@@ -21,7 +21,10 @@ if (!connectionString) {
 // 2. Initialize the adapter
 const pool = new Pool({ connectionString });
 const adapter = new PrismaNeon(pool);
-const prisma = new PrismaClient({ adapter });
+
+const prisma = new PrismaClient({ 
+  adapter: adapter // This is the 'non-empty options' it's asking for
+});
 
 async function main() {
   console.log('🌱 Seeding database with Chinese poem questions...');

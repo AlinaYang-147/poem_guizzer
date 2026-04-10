@@ -1,4 +1,3 @@
-
 import 'dotenv/config'
 import { defineConfig, env } from 'prisma/config'
 
@@ -7,8 +6,9 @@ export default defineConfig({
   datasource: {
     url: env('DATABASE_URL'),
   },
-  // In Prisma 7, seed is a top-level property
-  seed: {
-    command: 'tsx prisma/seed.ts',
+  migrations: {
+    path: 'prisma/migrations',
+    // The CLI is explicitly looking for it here
+    seed: 'tsx prisma/seed.ts', 
   },
 })

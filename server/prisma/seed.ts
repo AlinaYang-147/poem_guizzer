@@ -24,9 +24,7 @@ const pool = new Pool({ connectionString });
 const adapter = new PrismaNeon(pool);
 
 const prisma = new PrismaClient({
-  datasource: {
-    url: process.env.DATABASE_URL
-  }
+  datasourceUrl: process.env.DATABASE_URL
 });
 
 async function main() {

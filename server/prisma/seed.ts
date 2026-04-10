@@ -24,7 +24,9 @@ const pool = new Pool({ connectionString });
 const adapter = new PrismaNeon(pool);
 
 const prisma = new PrismaClient({
-  datasourceUrl: "postgresql://neondb_owner:npg_Ydsq4AXPNC8b@ep-curly-fire-a1w1jni3-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+  datasource: {
+    url: process.env.DATABASE_URL
+  }
 });
 
 async function main() {

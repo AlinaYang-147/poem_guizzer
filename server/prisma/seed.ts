@@ -13,8 +13,7 @@ import bcrypt from 'bcryptjs';
 
 // 1. Mandatory for Neon Serverless in Node environments
 neonConfig.webSocketConstructor = ws;
-
-const connectionString = process.env.DATABASE_URL;
+const connectionString = process.env.DIRECT_URL || process.env.DATABASE_URL;
 if (!connectionString) {
   throw new Error('DATABASE_URL is not defined in your environment variables');
 }
@@ -23,9 +22,7 @@ if (!connectionString) {
 const pool = new Pool({ connectionString });
 const adapter = new PrismaNeon(pool);
 
-const prisma = new PrismaClient({
-  datasourceUrl: process.env.DATABASE_URL
-});
+const prisma = new PrismaClient({ adapter });
 
 async function main() {
   console.log('🌱 Seeding database with Chinese poem questions...');

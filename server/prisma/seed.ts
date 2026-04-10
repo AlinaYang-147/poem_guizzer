@@ -3,12 +3,13 @@
  * "腹有诗书气自华" 诗词大会预选赛题目
  * Run with: npm run db:seed
  */
+import 'dotenv/config'; // Load DATABASE_URL from .env
 import { PrismaClient, Prisma, QuestionType, EventPhase, Role } from '@prisma/client';
 import { PrismaNeon } from '@prisma/adapter-neon';
 import { Pool, neonConfig } from '@neondatabase/serverless';
 import ws from 'ws';
 import bcrypt from 'bcryptjs';
-import 'dotenv/config'; // Load DATABASE_URL from .env
+
 
 // 1. Mandatory for Neon Serverless in Node environments
 neonConfig.webSocketConstructor = ws;
@@ -22,8 +23,8 @@ if (!connectionString) {
 const pool = new Pool({ connectionString });
 const adapter = new PrismaNeon(pool);
 
-const prisma = new PrismaClient({ 
-  adapter: adapter // This is the 'non-empty options' it's asking for
+const prisma = new PrismaClient({
+  datasourceUrl: "postgresql://neondb_owner:npg_Ydsq4AXPNC8b@ep-curly-fire-a1w1jni3-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
 });
 
 async function main() {

@@ -6,22 +6,30 @@
 import 'dotenv/config'; // Load DATABASE_URL from .env
 import { PrismaClient, Prisma, QuestionType, EventPhase, Role } from '@prisma/client';
 import { PrismaNeon } from '@prisma/adapter-neon';
-import { Pool, neonConfig } from '@neondatabase/serverless';
+import { neonConfig } from '@neondatabase/serverless';
 import ws from 'ws';
 import bcrypt from 'bcryptjs';
 
+// Diagnostic: Check if environment variables are visible
+console.log('🔍 Checking environment...');
+console.log('   DATABASE_URL present:', !!process.env.DATABASE_URL);
+if (process.env.DATABASE_URL) {
+  console.log('   DATABASE_URL length:', process.env.DATABASE_URL.length);
+  console.log('   DATABASE_URL starts with:', process.env.DATABASE_URL.substring(0, 15));
+}
 
 // 1. Mandatory for Neon Serverless in Node environments
 neonConfig.webSocketConstructor = ws;
-const connectionString = process.env.DIRECT_URL || process.env.DATABASE_URL;
+const connectionString = process.env.DATABASE_URL || '';
+
 if (!connectionString) {
-  throw new Error('DATABASE_URL is not defined in your environment variables');
+  console.error('❌ Error: DATABASE_URL environment variable is not set or empty.');
+  console.log('   Available keys:', Object.keys(process.env).filter(k => !k.includes('SECRET') && !k.includes('PASSWORD')));
+  process.exit(1);
 }
 
 // 2. Initialize the adapter
-const pool = new Pool({ connectionString });
-const adapter = new PrismaNeon(pool);
-
+const adapter = new PrismaNeon({ connectionString });
 const prisma = new PrismaClient({ adapter });
 
 async function main() {

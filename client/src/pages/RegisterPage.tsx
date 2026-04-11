@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authApi } from '../services/api';
-import { useAuthStore } from '../store/authStore';
-import { User } from '../types';
 
 export const RegisterPage: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -12,9 +10,9 @@ export const RegisterPage: React.FC = () => {
     confirmPassword: '',
   });
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const { login } = useAuthStore();
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -24,6 +22,7 @@ export const RegisterPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccessMessage('');
 
     if (formData.password !== formData.confirmPassword) {
       setError('两次密码输入不一致');
@@ -49,9 +48,20 @@ export const RegisterPage: React.FC = () => {
         return;
       }
 
-      const { token, user } = response.data as { token: string; user: User };
-      login(token, user);
-      navigate('/profile-setup');
+      const result = response.data as { success?: boolean; user?: { email?: string } } | undefined;
+
+      if (!result?.success || !result.user?.email) {
+        setError('注册接口返回数据不完整，请稍后重试');
+        return;
+      }
+
+      setSuccessMessage(`注册成功：${result.user.email}`);
+      window.setTimeout(() => {
+        navigate('/login', {
+          replace: true,
+          state: { registeredEmail: result.user?.email },
+        });
+      }, 800);
     } catch {
       setError('网络错误，请重试');
     } finally {
@@ -81,6 +91,13 @@ export const RegisterPage: React.FC = () => {
         {error && (
           <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
             {error}
+          </div>
+        )}
+
+        {/* Success */}
+        {successMessage && (
+          <div className="mb-4 p-3 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-lg text-sm">
+            {successMessage}，正在跳转到登录页…
           </div>
         )}
 

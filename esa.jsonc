@@ -1,0 +1,10 @@
+{
+  "name": "poem-guizzer",
+  "entry": "./esa-entry.mjs",
+  "installCommand": "npm install",
+  "buildCommand": "npm run build:client",
+  "assets": {
+    "directory": "./client/dist",
+    "notFoundStrategy": "singlePageApplication"
+  }
+}

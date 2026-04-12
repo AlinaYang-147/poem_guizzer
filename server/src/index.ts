@@ -31,8 +31,8 @@ const PORT = process.env.PORT || 5000;
 const allowedOrigins = [
   'https://poemguizzer.vercel.app',
   'https://poem-guizzer.vercel.app',
-  'https://poemguizzer.pages.dev',
-  'https://poemguizzer.uhn-ccc.workers.dev',
+  'https://poem-guizzer.pages.dev',
+  'https://poem-guizzer.uhn-ccc.workers.dev',
   'http://localhost:5173'
 ];
 

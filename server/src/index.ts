@@ -1,4 +1,4 @@
-import express, { Request, Response, NextFunction } from 'express';
+import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
@@ -7,14 +7,6 @@ import { PrismaNeon } from '@prisma/adapter-neon';
 import { neonConfig } from '@neondatabase/serverless';
 import ws from 'ws';
 import rateLimit from 'express-rate-limit';
-
-
-// Route imports
-import authRoutes from './routes/auth';
-import quizRoutes from './routes/quiz';
-import adminRoutes from './routes/admin';
-
-dotenv.config();
 
 // Required for Neon Serverless WebSockets
 neonConfig.webSocketConstructor = ws;
@@ -32,7 +24,9 @@ const allowedOrigins = [
   'https://poemguizzer.vercel.app',
   'https://poem-guizzer.vercel.app',
   'https://poemguizzer.pages.dev',
+  'https://poem-guizzer.pages.dev',
   'https://poemguizzer.uhn-ccc.workers.dev',
+  'https://poem-guizzer.uhn-ccc.workers.dev',
   'http://localhost:5173'
 ];
 
@@ -55,11 +49,14 @@ app.options('*', cors({
   credentials: true,
 }) as any);
 
-// 2. Security & Middleware
+// 2. Security & Rate Limiting
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
 
+const PORT = process.env.PORT || 5000;
+
+// Rate limiting
 const limiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000'),
   max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100'),
@@ -69,35 +66,47 @@ const limiter = rateLimit({
 });
 
 app.use('/api/', limiter);
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use('/api/', limiter);
+
+// Body parsing middleware
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
-// Routes
-app.get('/api/health', (_req: Request, res: Response) => {
+// Health check
+app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+
+// Route imports
+import authRoutes from './routes/auth';
+import quizRoutes from './routes/quiz';
+import adminRoutes from './routes/admin';
 
 app.use('/api/auth', authRoutes);
 app.use('/api/quiz', quizRoutes);
 app.use('/api/admin', adminRoutes);
 
 // 404 handler
-app.use((_req: Request, res: Response) => {
+app.use((_req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
 
-/**
- * Error handler
- * Explicitly typed to satisfy TS7006 and TS18046
- */
-app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
+// Error handler
+app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error('Error:', err);
-  const message = err instanceof Error ? err.message : 'Internal server error';
-  res.status(500).json({ error: message });
+  res.status(500).json({ error: 'Internal server error' });
 });
 
+// Start server
 app.listen(PORT, async () => {
   console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`📅 Environment: ${process.env.NODE_ENV || 'development'}`);
+  
+  // Test database connection
   try {
     await prisma.$connect();
     console.log('✅ Database connected successfully');

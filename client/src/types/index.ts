@@ -8,13 +8,16 @@ export type EventPhase = 'PRE_QUALIFIER' | 'FINALS';
 
 export interface User {
   id: string;
-  email: string;
+  email?: string | null;
   username: string;
   role: UserRole;
   fullName: string | null;
   grade: string | null;
   studentId: string | null;
   profileComplete: boolean;
+  isBanned?: boolean;
+  banReason?: string | null;
+  bannedAt?: string | null;
   createdAt: string;
 }
 

@@ -1,18 +1,19 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authApi } from '../services/api';
+import { useAuthStore } from '../store/authStore';
+import { User } from '../types';
 
 export const RegisterPage: React.FC = () => {
   const [formData, setFormData] = useState({
-    email: '',
     username: '',
     password: '',
     confirmPassword: '',
   });
   const [error, setError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  const { login } = useAuthStore();
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -22,7 +23,6 @@ export const RegisterPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setSuccessMessage('');
 
     if (formData.password !== formData.confirmPassword) {
       setError('两次密码输入不一致');
@@ -38,31 +38,38 @@ export const RegisterPage: React.FC = () => {
 
     try {
       const response = await authApi.register(
-        formData.email,
+        '', // email is now empty
         formData.username,
         formData.password
       );
+
+      console.log('Registration full response:', response);
 
       if (response.error) {
         setError(response.error);
         return;
       }
 
-      const result = response.data as { success?: boolean; user?: { email?: string } } | undefined;
+      // Extract data - check both top level and nested in 'data'
+      const rawData = response.data as any;
+      let token = rawData?.token;
+      let user = rawData?.user;
 
-      if (!result?.success || !result.user?.email) {
+      // If missing at top level, check if it's nested (shouldn't be, but just in case)
+      if (!token && rawData?.data?.token) token = rawData.data.token;
+      if (!user && rawData?.data?.user) user = rawData.data.user;
+
+      if (!token || !user) {
+        console.error('Incomplete registration data structure:', rawData);
+        console.log('Data keys:', rawData ? Object.keys(rawData) : 'null/undefined');
         setError('注册接口返回数据不完整，请稍后重试');
         return;
       }
 
-      setSuccessMessage(`注册成功：${result.user.email}`);
-      window.setTimeout(() => {
-        navigate('/login', {
-          replace: true,
-          state: { registeredEmail: result.user?.email },
-        });
-      }, 800);
-    } catch {
+      login(token, user as User);
+      navigate('/profile-setup');
+    } catch (err) {
+      console.error('Registration catch error:', err);
       setError('网络错误，请重试');
     } finally {
       setIsLoading(false);
@@ -94,32 +101,8 @@ export const RegisterPage: React.FC = () => {
           </div>
         )}
 
-        {/* Success */}
-        {successMessage && (
-          <div className="mb-4 p-3 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-lg text-sm">
-            {successMessage}，正在跳转到登录页…
-          </div>
-        )}
-
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label htmlFor="email" className="block text-sm font-kai text-ink-600 mb-1.5">
-              邮箱地址
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              className="input"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="your@email.com"
-              required
-              autoComplete="email"
-            />
-          </div>
-
           <div>
             <label htmlFor="username" className="block text-sm font-kai text-ink-600 mb-1.5">
               用户名

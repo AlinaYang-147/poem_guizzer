@@ -3,12 +3,16 @@
  * "腹有诗书气自华" 诗词大会预选赛题目
  * Run with: npm run db:seed
  */
-import 'dotenv/config'; // Load DATABASE_URL from .env
+
 import { PrismaClient, Prisma, QuestionType, EventPhase, Role } from '@prisma/client';
 import { PrismaNeon } from '@prisma/adapter-neon';
 import { neonConfig } from '@neondatabase/serverless';
 import ws from 'ws';
 import bcrypt from 'bcryptjs';
+import dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config();
 
 // Diagnostic: Check if environment variables are visible
 console.log('🔍 Checking environment...');
@@ -18,8 +22,10 @@ if (process.env.DATABASE_URL) {
   console.log('   DATABASE_URL starts with:', process.env.DATABASE_URL.substring(0, 15));
 }
 
-// 1. Mandatory for Neon Serverless in Node environments
+// Configure Neon for WebSocket support
 neonConfig.webSocketConstructor = ws;
+
+// Prioritize system environment (Render) over .env file
 const connectionString = process.env.DATABASE_URL || '';
 
 if (!connectionString) {
@@ -28,7 +34,6 @@ if (!connectionString) {
   process.exit(1);
 }
 
-// 2. Initialize the adapter
 const adapter = new PrismaNeon({ connectionString });
 const prisma = new PrismaClient({ adapter });
 

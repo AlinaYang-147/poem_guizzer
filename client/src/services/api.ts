@@ -55,22 +55,11 @@ async function request<T = unknown>(
     }
 
     const response = await fetch(url, config);
-    const contentType = response.headers.get('content-type') || '';
-    const isJson = contentType.toLowerCase().includes('application/json');
-
-    if (!isJson) {
-      const rawText = await response.text();
-      const preview = rawText.trim().slice(0, 120);
-      return {
-        error: response.ok
-          ? '接口返回了非 JSON 响应，无法继续处理'
-          : `接口返回了非 JSON 响应（HTTP ${response.status}）${preview ? `：${preview}` : ''}`,
-      };
-    }
-
     const data = await response.json();
 
     if (!response.ok) {
+      // Express-validator returns { errors: [{ msg, path, ... }] }
+      // Express generic errors return { error: "message" }
       let errorMsg = data.error;
       if (!errorMsg && data.errors && Array.isArray(data.errors)) {
         errorMsg = data.errors.map((e: { msg: string }) => e.msg).join(', ');
@@ -93,7 +82,7 @@ async function request<T = unknown>(
 // Auth API
 // ──────────────────────────────────────────────
 export const authApi = {
-  register: (email: string, username: string, password: string) =>
+  register: (email: string | null | undefined, username: string, password: string) =>
     request('POST', '/auth/register', { email, username, password }),
 
   login: (identifier: string, password: string) =>
@@ -144,6 +133,9 @@ export const adminApi = {
 
   deleteUser: (userId: string) =>
     request('DELETE', `/admin/users/${userId}`),
+
+  banUser: (userId: string, isBanned: boolean, reason?: string) =>
+    request('PUT', `/admin/users/${userId}/ban`, { isBanned, reason }),
 
   getQuestions: (params?: { phase?: string; type?: string }) => {
     const qs = new URLSearchParams();

@@ -27,7 +27,7 @@ enum EventPhase {
 
 model User {
   id              String       @id @default(uuid())
-  email           String       @unique
+  email           String?      @unique
   username        String       @unique
   password        String
   role            Role         @default(USER)
@@ -38,6 +38,11 @@ model User {
   studentId       String?       @unique
   
   profileComplete Boolean      @default(false)
+  
+  // Anti-cheat: permanent ban for excessive tab switching
+  isBanned        Boolean      @default(false)
+  banReason       String?
+  bannedAt        DateTime?
   
   scores          Score[]
   submissions     Submission[]

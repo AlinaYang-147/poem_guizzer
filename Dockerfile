@@ -1,22 +1,25 @@
-FROM node:18-alpine AS builder
+# Build context: repository root. Keep this file in sync with the root Dockerfile.
+FROM node:22.23.4-alpine AS build
+RUN apk add --no-cache --upgrade ca-certificates openssl && update-ca-certificates
 WORKDIR /app
-COPY package*.json ./
-RUN npm install
-COPY . .
-RUN npm run build
+COPY package.json package-lock.json ./
+COPY client/package.json ./client/package.json
+COPY server/package.json ./server/package.json
+RUN npm ci
+COPY tsconfig.base.json ./
+COPY server ./server
+RUN npm run build:server && npm prune --omit=dev
 
-# 运行环境
-FROM node:18-alpine AS runner
+FROM node:22.23.4-alpine AS runtime
+RUN apk add --no-cache --upgrade ca-certificates openssl && update-ca-certificates
+ENV NODE_ENV=production
 WORKDIR /app
-ENV NODE_ENV production
-
-# 从构建阶段拷贝 standalone 产物
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
-
-EXPOSE 3000
-ENV PORT 3000
-
-# Next.js standalone 模式通过 server.js 启动
-CMD ["node", "server.js"]
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/server/package.json ./server/package.json
+COPY --from=build /app/server/dist ./server/dist
+COPY --from=build /app/server/prisma ./server/prisma
+COPY --from=build /app/server/prisma.config.ts ./server/prisma.config.ts
+WORKDIR /app/server
+EXPOSE 5000
+# Schema changes are an explicit operator step, never an accept-data-loss startup.
+CMD ["node", "dist/index.js"]

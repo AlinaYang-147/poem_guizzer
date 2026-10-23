@@ -44,7 +44,10 @@ Render hosts your Express.js API and handles database migrations.
     *   `JWT_SECRET`: A long, random string.
     *   `PORT`: `5000`
     *   `NODE_ENV`: `production`
+    *   `NODE_VERSION`: `22.23.4` (replace any older dashboard override).
     *   `CLIENT_URL`: Your Vercel URL (add this *after* setting up Vercel).
+
+After updating the runtime, trigger a fresh build and deploy for every existing service. Render native rebuilds refresh the system CA store; Docker deployments must rebuild with the updated Dockerfiles (use `--pull --no-cache`) and deploy the new images. Restart any separately managed Node.js processes with the patched runtime and update their host CA certificates. Verify the Node.js version in build/runtime logs and check certificate rejection from the running application's HTTP client as described in the [eMudhra advisory](https://render.com/docs/advisory-emudhra).
 
 ---
 
